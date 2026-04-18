@@ -7,7 +7,7 @@
     <style>
         @font-face {
             font-family: 'MatissePro';
-            src: url('/fonts/FOT-Matisse Pro EB.otf') format('opentype');
+            src: url('FOT-Matisse Pro EB.otf') format('opentype');
             font-display: swap;
         }
 
@@ -85,6 +85,7 @@
             text-align: center;
         }
 
+        /* Widget: Animation Logic */
         .descend-widget { margin-top: 60px; display: inline-flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0.8; }
         .track { width: 1px; height: 60px; background: rgba(255, 215, 0, 0.2); position: relative; }
         .slider { width: 10px; height: 2px; background: var(--contrast); position: absolute; left: -4.5px; animation: slide-down 2s infinite cubic-bezier(0.19, 1, 0.22, 1); box-shadow: 0 0 10px var(--contrast); }
@@ -116,11 +117,14 @@
         .track-info h3 { font-size: 2rem; color: var(--contrast); margin: 0 0 20px 0; letter-spacing: 5px; }
         .track-desc { opacity: 0.7; line-height: 1.8; max-width: 550px; font-size: 1rem; }
 
+        /* Contact Section */
         #contact-protocol { padding: 300px 20px 150px; text-align: center; border-top: 1px solid rgba(255, 215, 0, 0.05); margin-top: 100px; }
         .contact-title { font-size: 1.5rem; letter-spacing: 12px; color: var(--contrast); margin-bottom: 40px; text-transform: uppercase; }
         .contact-links { display: flex; flex-direction: column; gap: 15px; align-items: center; }
         .contact-link { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 1rem; letter-spacing: 3px; transition: 0.3s; }
         .contact-link:hover { color: #fff; }
+        
+        .insta-label { color: rgba(255,255,255,0.8); margin-right: 10px; }
 
         @media (max-width: 900px) {
             .track-item { grid-template-columns: 1fr; gap: 0; direction: ltr !important; }
@@ -188,17 +192,20 @@
             <div class="contact-title matisse-text">Contact me</div>
             <div class="contact-links">
                 <a href="mailto:gaiselmade@gmail.com" class="contact-link">gaiselmade@gmail.com</a>
-                <a href="https://instagram.com/gaiselhills" target="_blank" class="contact-link">@gaiselhills</a>
+                <a href="https://instagram.com/gaiselhills" target="_blank" class="contact-link">
+                    <span class="insta-label">Instagram</span>@gaiselhills
+                </a>
             </div>
         </section>
     </main>
 
     <script>
+        const triggerHaptic = () => { if ("vibrate" in navigator) navigator.vibrate([20, 30, 20]); };
+
         const audioMap = {
-            bg: "/audio/background.mp3",
-            t1: "/audio/track1.mp3", t2: "/audio/track2.mp3", t3: "/audio/track3.mp3", 
-            t4: "/audio/track4.mp3", t5: "/audio/track5.mp3", t6: "/audio/track6.mp3", 
-            t7: "/audio/track7.mp3", t8: "/audio/track8.mp3", t9: "/audio/track9.mp3", t10: "/audio/track10.mp3"
+            bg: "PASTE_YOUR_BG_LINK_HERE.mp3",
+            t1: "LINK_01.mp3", t2: "LINK_02.mp3", t3: "LINK_03.mp3", t4: "LINK_04.mp3", t5: "LINK_05.mp3",
+            t6: "LINK_06.mp3", t7: "LINK_07.mp3", t8: "LINK_08.mp3", t9: "LINK_09.mp3", t10: "LINK_10.mp3"
         };
 
         const bgA = document.getElementById('bg-1');
@@ -210,26 +217,19 @@
 
         function startGaplessLoop(initVolume = 0) {
             bgA.volume = bgB.volume = initVolume;
-            activePlayer.play().catch(e => console.log("Playback Blocked"));
-
-            const switchEngine = () => {
-                let nextPlayer = (activePlayer === bgA) ? bgB : bgA;
-                nextPlayer.currentTime = 0;
-                nextPlayer.volume = isDucked ? 0 : 1.0;
-                nextPlayer.play().catch(e => console.log("Switch Blocked"));
-                activePlayer = nextPlayer;
-            };
-
-            const heartbeat = () => {
-                if (activePlayer.duration) {
-                    let timeLeft = activePlayer.duration - activePlayer.currentTime;
-                    if (timeLeft < 0.5 && timeLeft > 0) {
-                        switchEngine();
+            activePlayer.play().catch(e => console.log("Init Blocked"));
+            activePlayer.ontimeupdate = () => {
+                let timeLeft = activePlayer.duration - activePlayer.currentTime;
+                if (timeLeft < 1.2 && timeLeft > 0) {
+                    let nextPlayer = (activePlayer === bgA) ? bgB : bgA;
+                    if (nextPlayer.paused) {
+                        nextPlayer.currentTime = 0;
+                        nextPlayer.volume = isDucked ? 0 : 1.0;
+                        nextPlayer.play();
+                        activePlayer = nextPlayer; 
                     }
                 }
-                requestAnimationFrame(heartbeat);
             };
-            requestAnimationFrame(heartbeat);
         }
 
         function fadeBG(toSilence, isInitial = false) {
@@ -255,7 +255,7 @@
                 <div class="track-item">
                     <div class="img-container">
                         <div class="img-label matisse-text">${nodeID}</div>
-                        <div class="img-space"><img data-src="/images/${id}.jpg" class="scroll-reveal"></div>
+                        <div class="img-space"><img data-src="${id}.jpg" class="scroll-reveal"></div>
                         <div class="console-player" data-id="${id}">
                             <div class="play-trigger matisse-text">► RUN</div>
                             <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
@@ -289,7 +289,12 @@
         };
 
         document.getElementById('no-button').onclick = () => {
-            if (state.isHaunted) return;
+            triggerHaptic();
+            if (state.isHaunted) {
+                document.getElementById('no-button').classList.add('active-glitch');
+                setTimeout(() => document.getElementById('no-button').classList.remove('active-glitch'), 500);
+                return;
+            }
             document.getElementById('splash').style.display = 'none';
             document.getElementById('crash').style.display = 'flex';
             setTimeout(() => {
@@ -301,6 +306,8 @@
         document.getElementById('retry-btn').onclick = () => {
             state.isHaunted = true;
             document.getElementById('crash').style.display = 'none';
+            document.getElementById('fin-msg').style.opacity = '0';
+            document.getElementById('retry-btn').classList.remove('visible');
             document.getElementById('no-button').classList.add('haunted');
             document.getElementById('splash').style.display = 'flex';
             document.getElementById('splash').style.opacity = '1';
@@ -315,16 +322,12 @@
                 const timeDisp = document.getElementById(`time-${id}`);
                 if (audio.paused) { 
                     fadeBG(true);
-                    document.querySelectorAll('audio:not([id^="bg"])').forEach(a => { 
-                        a.pause(); 
-                        if(a.parentElement.querySelector('.play-trigger')) a.parentElement.querySelector('.play-trigger').textContent = "► RUN"; 
-                    });
+                    document.querySelectorAll('audio:not([id^="bg"])').forEach(a => { a.pause(); if(a.parentElement.querySelector('.play-trigger')) a.parentElement.querySelector('.play-trigger').textContent = "► RUN"; });
                     audio.play(); 
                     playBtn.textContent = "■ STOP"; 
                     audio.ontimeupdate = () => {
                         bar.style.width = (audio.currentTime / audio.duration) * 100 + "%";
-                        const mins = Math.floor(audio.currentTime / 60); 
-                        const secs = Math.floor(audio.currentTime % 60);
+                        const mins = Math.floor(audio.currentTime / 60); const secs = Math.floor(audio.currentTime % 60);
                         timeDisp.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
                     };
                     audio.onended = () => { playBtn.textContent = "► RUN"; fadeBG(false); };
