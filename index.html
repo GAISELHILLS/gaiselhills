@@ -1,1 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>GAISELHILLS</title>
+    <style>
+        @font-face {
+            font-family: 'MatissePro';
+            src: url('/fonts/FOT-Matisse Pro EB.otf') format('opentype');
+            font-display: swap;
+        }
 
+        :root { 
+            --zaffre: #0014A8; 
+            --contrast: #FFD700; 
+            --font-main: 'Courier New', monospace;
+            --font-accent: 'MatissePro', sans-serif;
+        }
+
+        /* Base Reset */
+        html, body { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #000; color: #fff; font-family: var(--font-main); 
+            overflow: hidden; 
+        }
+        
+        html { scroll-behavior: smooth; }
+        .is-scrollable { overflow-y: auto !important; height: auto !important; background-color: var(--zaffre) !important; }
+        .matisse-text { font-family: var(--font-accent); }
+
+        /* Splash & Crash */
+        #splash, #crash { 
+            position: fixed; inset: 0; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; background: #000; 
+            z-index: 1000;
+        }
+        #splash { transition: opacity 0.8s; }
+        #crash { z-index: 2000; display: none; }
+
+        .prompt-text { font-size: clamp(1.5rem, 5vw, 3rem); letter-spacing: 8px; margin-bottom: 60px; color: var(--contrast); text-transform: uppercase; text-align: center; }
+        .btns { display: flex; gap: 40px; }
+
+        button { 
+            background: none; border: 1px solid var(--contrast); color: #fff; 
+            padding: 15px 40px; font-size: 1.2rem; cursor: pointer; 
+            letter-spacing: 5px; position: relative; transition: 0.2s; 
+        }
+        button:hover:not(.haunted) { background: var(--contrast); color: #000; }
+
+        .no-btn.haunted { 
+            opacity: 0.6; color: #777; border-color: #444; 
+            animation: glitch-vibrate 0.3s infinite linear alternate-reverse;
+            cursor: not-allowed;
+        }
+        
+        @keyframes glitch-vibrate {
+          0% { transform: translate(0); }
+          20% { transform: translate(-2px, 2px); }
+          100% { transform: translate(0); }
+        }
+
+        /* CRT Effect */
+        #crt-line { position: fixed; top: 50%; left: 0; width: 100%; height: 2px; background: #fff; z-index: 5000; transform: scaleX(0); display: none; }
+        .crt-active { display: block !important; animation: crt-expand 0.9s forwards; }
+        @keyframes crt-expand { 
+            0% { transform: scaleX(0); height: 2px; opacity: 1; } 
+            30% { transform: scaleX(1); height: 2px; opacity: 1; } 
+            60% { transform: scaleX(1); height: 100vh; top: 0; opacity: 1; } 
+            100% { transform: scaleX(1); height: 100vh; top: 0; opacity: 0; } 
+        }
+
+        /* Layout Content */
+        #main-site { display: none; width: 100%; opacity: 0; transition: opacity 1s; }
+        .hero-exhibit, .vision-exhibit { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; }
+        h1 { font-size: clamp(3.5rem, 15vw, 12rem); letter-spacing: -8px; color: var(--contrast); margin: 0; line-height: 1; }
+        
+        .intro-container { width: 100%; display: block; margin-bottom: 30px; }
+        .intro-tag { 
+            font-size: 1.2rem; 
+            color: var(--contrast); 
+            letter-spacing: 15px; 
+            font-weight: bold;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .descend-widget { margin-top: 60px; display: inline-flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0.8; }
+        .track { width: 1px; height: 60px; background: rgba(255, 215, 0, 0.2); position: relative; }
+        .slider { width: 10px; height: 2px; background: var(--contrast); position: absolute; left: -4.5px; animation: slide-down 2s infinite cubic-bezier(0.19, 1, 0.22, 1); box-shadow: 0 0 10px var(--contrast); }
+        .descend-label { font-size: 10px; letter-spacing: 4px; color: var(--contrast); text-transform: uppercase; }
+        @keyframes slide-down { 0% { top: 0; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
+        .spacer { height: 80vh; }
+        .manifesto-text { font-size: clamp(1.1rem, 3vw, 1.4rem); line-height: 2.2; opacity: 0.9; text-transform: uppercase; font-family: var(--font-main); max-width: 800px; padding: 0 20px; text-align: center; }
+
+        /* Gallery */
+        .gallery-wrap { max-width: 1300px; margin: 0 auto; padding: 10vh 25px 0; }
+        .work-grid { display: flex; flex-direction: column; gap: 20vh; }
+        .track-item { display: grid; grid-template-columns: 400px 1fr; gap: 60px; align-items: start; }
+        .track-item:nth-child(even) { direction: rtl; }
+        .track-item:nth-child(even) * { direction: ltr; }
+        
+        .img-container { width: 400px; aspect-ratio: 1/1; border: 1px solid rgba(255,255,255,0.2); background: #000; position: relative; }
+        .img-label { position: absolute; top: 15px; left: 15px; z-index: 20; color: var(--contrast); background: rgba(0,0,0,0.7); padding: 5px 10px; border: 1px solid rgba(255,215,0,0.3); display: none; }
+        .img-space { width: 100%; height: 100%; overflow: hidden; }
+        .img-space img { width: 100%; height: 100%; object-fit: cover; opacity: 0; mask-image: radial-gradient(black 1px, transparent 1.5px); mask-size: 8px 8px; transition: opacity 1.5s, mask-size 1.8s cubic-bezier(0.19,1,0.22,1); }
+        .img-space img.reveal { opacity: 1; mask-size: 1px 1px; }
+
+        .console-player { background: #000; border-top: 1px solid var(--contrast); padding: 12px; display: flex; align-items: center; gap: 15px; box-sizing: border-box; }
+        .play-trigger { color: var(--contrast); cursor: pointer; font-weight: bold; font-size: 0.85rem; min-width: 80px; }
+        .progress-container { flex-grow: 1; height: 4px; background: #222; position: relative; cursor: pointer; }
+        .progress-bar { height: 100%; background: var(--contrast); width: 0%; pointer-events: none;}
+        .time-display { color: #666; font-size: 0.7rem; }
+        
+        .track-info h3 { font-size: 2rem; color: var(--contrast); margin: 0 0 20px 0; letter-spacing: 5px; }
+        .track-desc { opacity: 0.7; line-height: 1.8; max-width: 550px; font-size: 1rem; }
+
+        #contact-protocol { padding: 300px 20px 150px; text-align: center; border-top: 1px solid rgba(255, 215, 0, 0.05); margin-top: 100px; }
+        .contact-title { font-size: 1.5rem; letter-spacing: 12px; color: var(--contrast); margin-bottom: 40px; text-transform: uppercase; }
+        .contact-links { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .contact-link { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 1rem; letter-spacing: 3px; transition: 0.3s; }
+        .contact-link:hover { color: #fff; }
+
+        @media (max-width: 900px) {
+            .track-item { grid-template-columns: 1fr; gap: 0; direction: ltr !important; }
+            .track-item:nth-child(even) { direction: ltr !important; }
+            .img-container { width: 100%; aspect-ratio: 1/1; }
+            .img-label { display: block; } .track-info h3 { display: none; }
+            .console-player { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); border: none; }
+            .track-info { padding: 30px 20px 60px; }
+            .intro-tag { letter-spacing: 8px; font-size: 1rem; } 
+            .vision-exhibit { padding: 0 20px; box-sizing: border-box; }
+        }
+
+        .fin { font-size: clamp(2rem, 8vw, 4rem); letter-spacing: 25px; color: var(--contrast); opacity: 0; transition: 1.5s; text-transform: uppercase; }
+        .retry-btn { margin-top: 40px; opacity: 0; transition: 1s; }
+        .retry-btn.visible { opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <div id="crt-line"></div>
+    
+    <audio id="bg-1" preload="auto"></audio>
+    <audio id="bg-2" preload="auto"></audio>
+
+    <div id="splash">
+        <div class="prompt-text matisse-text">ENTER GAISELHILLS?</div>
+        <div class="btns">
+            <button class="matisse-text" id="enter-btn">YES</button>
+            <button id="no-button" class="no-btn matisse-text">NO</button>
+        </div>
+    </div>
+
+    <div id="crash">
+        <div class="fin matisse-text" id="fin-msg">FIN</div>
+        <button class="retry-btn matisse-text" id="retry-btn">RETRY</button>
+    </div>
+
+    <main id="main-site">
+        <section class="hero-exhibit">
+            <h1 class="matisse-text">GAISELHILLS</h1>
+            <div class="descend-widget">
+                <div class="track"><div class="slider"></div></div>
+                <div class="descend-label matisse-text">DESCEND</div>
+            </div>
+        </section>
+
+        <div class="spacer"></div>
+
+        <section class="vision-exhibit">
+            <div class="intro-container">
+                <div class="intro-tag matisse-text">INTRODUCTION</div>
+            </div>
+            <p class="manifesto-text">
+                I do not accept every offer.<br>Your project must be as good as my music.<br>I am the 0,01%.<br>Convince yourself, keep scrolling.
+            </p>
+            <div class="descend-widget">
+                <div class="track"><div class="slider"></div></div>
+                <div class="descend-label matisse-text">DESCEND</div>
+            </div>
+        </section>
+
+        <div class="spacer"></div>
+        <div class="gallery-wrap"><div class="work-grid" id="track-list"></div></div>
+        
+        <section id="contact-protocol">
+            <div class="contact-title matisse-text">Contact me</div>
+            <div class="contact-links">
+                <a href="mailto:gaiselmade@gmail.com" class="contact-link">gaiselmade@gmail.com</a>
+                <a href="https://instagram.com/gaiselhills" target="_blank" class="contact-link">@gaiselhills</a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const audioMap = {
+            bg: "/audio/background.mp3",
+            t1: "/audio/track1.mp3", t2: "/audio/track2.mp3", t3: "/audio/track3.mp3", 
+            t4: "/audio/track4.mp3", t5: "/audio/track5.mp3", t6: "/audio/track6.mp3", 
+            t7: "/audio/track7.mp3", t8: "/audio/track8.mp3", t9: "/audio/track9.mp3", t10: "/audio/track10.mp3"
+        };
+
+        const bgA = document.getElementById('bg-1');
+        const bgB = document.getElementById('bg-2');
+        bgA.src = bgB.src = audioMap.bg;
+        let activePlayer = bgA;
+        let isDucked = false;
+        let state = { isHaunted: false };
+
+        function startGaplessLoop(initVolume = 0) {
+            bgA.volume = bgB.volume = initVolume;
+            activePlayer.play().catch(e => console.log("Playback Blocked"));
+
+            const switchEngine = () => {
+                let nextPlayer = (activePlayer === bgA) ? bgB : bgA;
+                nextPlayer.currentTime = 0;
+                nextPlayer.volume = isDucked ? 0 : 1.0;
+                nextPlayer.play().catch(e => console.log("Switch Blocked"));
+                activePlayer = nextPlayer;
+            };
+
+            const heartbeat = () => {
+                if (activePlayer.duration) {
+                    let timeLeft = activePlayer.duration - activePlayer.currentTime;
+                    if (timeLeft < 0.5 && timeLeft > 0) {
+                        switchEngine();
+                    }
+                }
+                requestAnimationFrame(heartbeat);
+            };
+            requestAnimationFrame(heartbeat);
+        }
+
+        function fadeBG(toSilence, isInitial = false) {
+            isDucked = toSilence;
+            const target = toSilence ? 0 : 1.0;
+            const step = isInitial ? 0.02 : 0.05; 
+            const fadeTimer = setInterval(() => {
+                [bgA, bgB].forEach(p => {
+                    if (Math.abs(p.volume - target) < step) {
+                        p.volume = target;
+                        clearInterval(fadeTimer);
+                    } else {
+                        p.volume += (p.volume < target) ? step : -step;
+                    }
+                });
+            }, 50);
+        }
+
+        document.getElementById('track-list').innerHTML = Array.from({length: 10}, (_, i) => {
+            const id = i + 1;
+            const nodeID = id.toString().padStart(2, '0') + "_NODE";
+            return `
+                <div class="track-item">
+                    <div class="img-container">
+                        <div class="img-label matisse-text">${nodeID}</div>
+                        <div class="img-space"><img data-src="/images/${id}.jpg" class="scroll-reveal"></div>
+                        <div class="console-player" data-id="${id}">
+                            <div class="play-trigger matisse-text">► RUN</div>
+                            <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
+                            <div class="time-display" id="time-${id}">00:00</div>
+                            <audio id="audio-${id}" preload="none"><source src="${audioMap['t'+id]}"></audio>
+                        </div>
+                    </div>
+                    <div class="track-info"><h3 class="matisse-text">${nodeID}</h3><p class="track-desc">High-fidelity sonic review.</p></div>
+                </div>`;
+        }).join('');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.src = e.target.dataset.src; e.target.classList.add('reveal'); }});
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+
+        document.getElementById('enter-btn').onclick = () => {
+            startGaplessLoop(0); fadeBG(false, true);
+            document.getElementById('splash').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('splash').style.display = 'none';
+                document.getElementById('crt-line').classList.add('crt-active');
+                setTimeout(() => {
+                    document.getElementById('main-site').style.display = 'block';
+                    document.documentElement.classList.add('is-scrollable');
+                    document.body.classList.add('is-scrollable');
+                    window.scrollTo(0,0);
+                    setTimeout(() => document.getElementById('main-site').style.opacity = '1', 50);
+                }, 750);
+            }, 800);
+        };
+
+        document.getElementById('no-button').onclick = () => {
+            if (state.isHaunted) return;
+            document.getElementById('splash').style.display = 'none';
+            document.getElementById('crash').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('fin-msg').style.opacity = '1';
+                setTimeout(() => document.getElementById('retry-btn').classList.add('visible'), 1200);
+            }, 100);
+        };
+
+        document.getElementById('retry-btn').onclick = () => {
+            state.isHaunted = true;
+            document.getElementById('crash').style.display = 'none';
+            document.getElementById('no-button').classList.add('haunted');
+            document.getElementById('splash').style.display = 'flex';
+            document.getElementById('splash').style.opacity = '1';
+        };
+
+        document.addEventListener('click', (e) => {
+            const playBtn = e.target.closest('.play-trigger');
+            if (playBtn) {
+                const id = playBtn.parentElement.dataset.id;
+                const audio = document.getElementById(`audio-${id}`);
+                const bar = document.getElementById(`bar-${id}`);
+                const timeDisp = document.getElementById(`time-${id}`);
+                if (audio.paused) { 
+                    fadeBG(true);
+                    document.querySelectorAll('audio:not([id^="bg"])').forEach(a => { 
+                        a.pause(); 
+                        if(a.parentElement.querySelector('.play-trigger')) a.parentElement.querySelector('.play-trigger').textContent = "► RUN"; 
+                    });
+                    audio.play(); 
+                    playBtn.textContent = "■ STOP"; 
+                    audio.ontimeupdate = () => {
+                        bar.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+                        const mins = Math.floor(audio.currentTime / 60); 
+                        const secs = Math.floor(audio.currentTime % 60);
+                        timeDisp.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+                    };
+                    audio.onended = () => { playBtn.textContent = "► RUN"; fadeBG(false); };
+                } else { audio.pause(); playBtn.textContent = "► RUN"; fadeBG(false); }
+            }
+        });
+    </script>
+</body>
+</html>
