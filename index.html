@@ -7,7 +7,7 @@
     <style>
         @font-face {
             font-family: 'MatissePro';
-            src: url('FOT-Matisse Pro EB.otf') format('opentype');
+            src: url('./public/fonts/FOT-Matisse Pro EB.otf') format('opentype');
             font-display: swap;
         }
 
@@ -203,9 +203,9 @@
         const triggerHaptic = () => { if ("vibrate" in navigator) navigator.vibrate([20, 30, 20]); };
 
         const audioMap = {
-            bg: "PASTE_YOUR_BG_LINK_HERE.mp3",
-            t1: "LINK_01.mp3", t2: "LINK_02.mp3", t3: "LINK_03.mp3", t4: "LINK_04.mp3", t5: "LINK_05.mp3",
-            t6: "LINK_06.mp3", t7: "LINK_07.mp3", t8: "LINK_08.mp3", t9: "LINK_09.mp3", t10: "LINK_10.mp3"
+            bg: "./public/audio/background.mp3",
+            t1: "./public/audio/track1.mp3", t2: "./public/audio/track2.mp3", t3: "./public/audio/track3.mp3", t4: "./public/audio/track4.mp3", t5: "./public/audio/track5.mp3",
+            t6: "./public/audio/track6.mp3", t7: "./public/audio/track7.mp3", t8: "./public/audio/track8.mp3", t9: "./public/audio/track9.mp3", t10: "./public/audio/track10.mp3"
         };
 
         const bgA = document.getElementById('bg-1');
@@ -255,7 +255,7 @@
                 <div class="track-item">
                     <div class="img-container">
                         <div class="img-label matisse-text">${nodeID}</div>
-                        <div class="img-space"><img data-src="${id}.jpg" class="scroll-reveal"></div>
+                        <div class="img-space"><img data-src="./public/images/${id}.jpg" class="scroll-reveal"></div>
                         <div class="console-player" data-id="${id}">
                             <div class="play-trigger matisse-text">► RUN</div>
                             <div class="progress-container"><div class="progress-bar" id="bar-${id}"></div></div>
